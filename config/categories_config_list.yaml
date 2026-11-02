@@ -1,0 +1,7 @@
+# Merged over Winter.Blog's categories list configuration (top-level keys replace Winter.Blog's).
+recordUrl: winter/blog/categories/preview/:id
+showCheckboxes: false
+toolbar:
+    buttons: $/josephcrowell/blogsmd/partials/_categories_toolbar.htm
+    search:
+        prompt: backend::lang.list.search_prompt

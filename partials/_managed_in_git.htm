@@ -1,0 +1,16 @@
+<?php $metadata = (array) ($model->metadata ?? []); ?>
+<div class="callout callout-info no-subheader">
+    <div class="header">
+        <i class="icon-code-fork"></i>
+        <h3><?= e(trans('josephcrowell.blogsmd::lang.managed_in_git')) ?></h3>
+    </div>
+    <div class="content">
+        <p><?= e(trans('josephcrowell.blogsmd::lang.locked')) ?></p>
+        <?php if (!empty($metadata['edit_url'])): ?>
+            <p><a href="<?= e($metadata['edit_url']) ?>" target="_blank" rel="noopener"><?= e(trans('josephcrowell.blogsmd::lang.view_source')) ?></a></p>
+        <?php endif ?>
+        <?php if (!empty($metadata['source_sha'])): ?>
+            <p><?= e(trans('josephcrowell.blogsmd::lang.source_commit')) ?>: <code><?= e(substr($metadata['source_sha'], 0, 12)) ?></code></p>
+        <?php endif ?>
+    </div>
+</div>

@@ -1,0 +1,7 @@
+"1.0.0":
+    - "First version"
+    - create_sources_table.php
+    - create_sync_state_table.php
+"1.0.1":
+    - "Remove Winter.Blog's sample post and category"
+    - remove_blog_sample_content.php

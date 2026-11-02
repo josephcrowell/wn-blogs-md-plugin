@@ -1,0 +1,78 @@
+tabs:
+  fields:
+    repository:
+      label: josephcrowell.blogsmd::lang.settings.repository
+      comment: josephcrowell.blogsmd::lang.settings.repository_comment
+      type: text
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    branch:
+      label: josephcrowell.blogsmd::lang.settings.branch
+      type: text
+      default: master
+      span: left
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    token:
+      label: josephcrowell.blogsmd::lang.settings.token
+      comment: josephcrowell.blogsmd::lang.settings.token_comment
+      type: sensitive
+      span: right
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    posts_path:
+      label: josephcrowell.blogsmd::lang.settings.posts_path
+      type: text
+      default: posts
+      span: left
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    categories_path:
+      label: josephcrowell.blogsmd::lang.settings.categories_path
+      type: text
+      default: categories
+      span: right
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    webhook_secret:
+      label: josephcrowell.blogsmd::lang.settings.webhook_secret
+      comment: josephcrowell.blogsmd::lang.settings.webhook_secret_comment
+      type: sensitive
+      tab: josephcrowell.blogsmd::lang.settings.tabs.repository
+
+    author_field:
+      label: josephcrowell.blogsmd::lang.settings.author_field
+      comment: josephcrowell.blogsmd::lang.settings.author_field_comment
+      type: dropdown
+      default: author
+      options:
+        author: josephcrowell.blogsmd::lang.settings.author_field_author
+        committer: josephcrowell.blogsmd::lang.settings.author_field_committer
+      span: left
+      tab: josephcrowell.blogsmd::lang.settings.tabs.publishing
+
+    on_removed:
+      label: josephcrowell.blogsmd::lang.settings.on_removed
+      type: dropdown
+      default: delete
+      options:
+        delete: josephcrowell.blogsmd::lang.settings.on_removed_delete
+        unpublish: josephcrowell.blogsmd::lang.settings.on_removed_unpublish
+      span: right
+      tab: josephcrowell.blogsmd::lang.settings.tabs.publishing
+
+    post_url_prefix:
+      label: josephcrowell.blogsmd::lang.settings.post_url_prefix
+      comment: josephcrowell.blogsmd::lang.settings.post_url_prefix_comment
+      type: text
+      default: /blog
+      span: left
+      tab: josephcrowell.blogsmd::lang.settings.tabs.publishing
+
+    redirect_on_move:
+      label: josephcrowell.blogsmd::lang.settings.redirect_on_move
+      comment: josephcrowell.blogsmd::lang.settings.redirect_on_move_comment
+      type: switch
+      default: true
+      span: right
+      tab: josephcrowell.blogsmd::lang.settings.tabs.publishing

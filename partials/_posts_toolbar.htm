@@ -1,0 +1,11 @@
+<div data-control="toolbar">
+    <?php $importExport = $this->asExtension(\Backend\Behaviors\ImportExportController::class); ?>
+    <?php if ($importExport->userHasAccess('export')): ?>
+        <a href="<?= $this->actionUrl('export') ?>" class="btn btn-default wn-icon-download">
+            <?= e(trans('backend::lang.import_export.export')) ?>
+        </a>
+    <?php endif ?>
+    <span class="btn btn-link disabled wn-icon-code-fork">
+        <?= e(trans('josephcrowell.blogsmd::lang.managed_in_git')) ?>
+    </span>
+</div>
