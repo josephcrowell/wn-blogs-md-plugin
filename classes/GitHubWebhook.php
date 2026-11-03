@@ -65,10 +65,6 @@ class GitHubWebhook
      */
     protected function repositoryName(string $url): ?string
     {
-        if (preg_match('#github\.com[/:]([^/]+)/([^/]+?)(?:\.git)?/?$#i', $url, $matches)) {
-            return $matches[1] . '/' . $matches[2];
-        }
-
-        return null;
+        return GitHubUsers::repositoryName($url);
     }
 }

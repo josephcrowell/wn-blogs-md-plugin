@@ -22,6 +22,7 @@ class Source extends Model
         'removed_at',
         'author_name',
         'author_email',
+        'author_github',
         'author_date',
     ];
 

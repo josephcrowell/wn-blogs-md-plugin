@@ -200,8 +200,13 @@ stored. Later edits by other people don't change it.
 - Only real renames are followed: the old file must be removed in the same commit that adds the
   new one. A new file copied from an existing post is a separate post, credited to whoever added
   it.
-- When the author's email is a GitHub no-reply address (`12345+login@users.noreply.github.com`),
-  the GitHub login is detected from it.
+- The author's GitHub login (for their profile image, `https://github.com/<login>.png`) comes from
+  a GitHub no-reply email (`12345+login@users.noreply.github.com`) when the commit has one.
+  Otherwise, for repositories on GitHub, it's looked up once per post through GitHub's API ("Get a
+  commit"), which matches the commit's email to an account, and stored. The access token is used
+  for the request when set; without one, GitHub allows 60 requests an hour, plenty for this. If
+  the email isn't linked to a GitHub account, or the request fails (logged as a warning), the
+  login stays empty and themes can fall back to initials.
 - When a backend user has the same email address as the author, the post is linked to that user.
 
 The author details are stored in the post's `metadata`: `author_name`, `author_email`,

@@ -21,6 +21,11 @@ abstract class BlogsMdTestCase extends PluginTestCase
     protected string $repo;
     protected string $mirror;
 
+    /**
+     * Clone this path instead of the configured repository, for tests that configure a GitHub URL.
+     */
+    protected ?string $cloneFrom = null;
+
     public function setUp(): void
     {
         parent::setUp();
@@ -72,16 +77,14 @@ abstract class BlogsMdTestCase extends PluginTestCase
      */
     protected function sync(bool $force = false): SyncResult
     {
-        $mirror = $this->mirror;
-
-        return (new class ($mirror) extends SyncRunner {
-            public function __construct(protected string $mirror)
+        return (new class ($this->mirror, $this->cloneFrom) extends SyncRunner {
+            public function __construct(protected string $mirror, protected ?string $cloneFrom)
             {
             }
 
             protected function makeRepository(string $repository): GitRepository
             {
-                return new GitRepository($repository, 'master', null, $this->mirror);
+                return new GitRepository($this->cloneFrom ?? $repository, 'master', null, $this->mirror);
             }
         })->run($force);
     }

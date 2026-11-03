@@ -36,6 +36,8 @@ class Synchroniser
      */
     protected array $renamedPaths = [];
 
+    protected ?GitHubUsers $gitHubUsers = null;
+
     /**
      * @param array $files Every blob in the tree at `$sha`, as `path => blob sha`.
      */
@@ -231,7 +233,7 @@ class Synchroniser
         $oldSlug = $isNew ? null : $post->slug;
 
         $author = $this->author($source, $path);
-        $githubLogin = $this->githubLogin($author['email']);
+        $githubLogin = $author['github'];
         $authorName = $author['name'];
 
         $publishedAt = $data['date'] ?? $author['date'];
@@ -285,6 +287,7 @@ class Synchroniser
                     'removed_at' => null,
                     'author_name' => $author['name'],
                     'author_email' => $author['email'],
+                    'author_github' => $author['github'],
                     'author_date' => $author['date'],
                 ]);
             });
@@ -498,29 +501,52 @@ class Synchroniser
      *
      * @return array{name: ?string, email: ?string, date: ?Carbon}
      */
+    /**
+     * The credited author: name, email and date from the commit that first added the file (stored on the
+     * `sources` row after the first sync), and their GitHub login for the profile image.
+     */
     protected function author(?Source $source, string $path): array
     {
+        $field = $this->config('author_field', 'author') === 'committer' ? 'committer' : 'author';
+
         if ($source && ($source->author_name !== null || $source->author_email !== null)) {
+            $github = $source->author_github ?: $this->githubLogin($source->author_email);
+
+            // Posts synced before logins were stored: look it up once, then it's kept on the row.
+            if ($github === null && ($commit = $this->git->firstCommit($this->sha, $path))) {
+                $github = $this->gitHubUsers()->loginForCommit($commit['sha'], $field);
+            }
+
             return [
                 'name' => $source->author_name,
                 'email' => $source->author_email,
                 'date' => $source->author_date ? Carbon::parse($source->author_date)->utc() : null,
+                'github' => $github,
             ];
         }
 
         $commit = $this->git->firstCommit($this->sha, $path);
 
         if (!$commit) {
-            return ['name' => null, 'email' => null, 'date' => null];
+            return ['name' => null, 'email' => null, 'date' => null, 'github' => null];
         }
 
-        $field = $this->config('author_field', 'author') === 'committer' ? 'committer' : 'author';
+        $email = $commit[$field . '_email'] ?: null;
 
         return [
             'name' => $commit[$field . '_name'] ?: null,
-            'email' => $commit[$field . '_email'] ?: null,
+            'email' => $email,
             'date' => Carbon::parse($commit['author_date'])->utc(),
+            'github' => $this->githubLogin($email) ?? $this->gitHubUsers()->loginForCommit($commit['sha'], $field),
         ];
+    }
+
+    protected function gitHubUsers(): GitHubUsers
+    {
+        return $this->gitHubUsers ??= App::make(GitHubUsers::class, [
+            'repository' => (string) $this->config('repository', ''),
+            'token' => $this->config('token') ?: null,
+        ]);
     }
 
     protected function githubLogin(?string $email): ?string

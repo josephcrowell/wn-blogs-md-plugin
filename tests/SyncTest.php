@@ -2,6 +2,7 @@
 
 namespace JosephCrowell\BlogsMd\Tests;
 
+use JosephCrowell\BlogsMd\Classes\GitHubUsers;
 use JosephCrowell\BlogsMd\Classes\SyncResult;
 use JosephCrowell\BlogsMd\Models\Settings;
 use JosephCrowell\BlogsMd\Models\Source;
@@ -207,6 +208,88 @@ class SyncTest extends BlogsMdTestCase
         $this->sync();
 
         $this->assertSame($user->id, (int) Post::where('slug', 'b')->firstOrFail()->user_id);
+    }
+
+    public function testGithubLoginComesFromGitHubForOtherEmails()
+    {
+        // A GitHub repository, cloned from the fixture; GitHub's API maps the commit email to an account.
+        Config::set('josephcrowell.blogsmd::repository', 'https://github.com/Sonic-DE/sonic-blogs');
+        $this->cloneFrom = $this->repo;
+        $requests = $this->fakeGitHub(200, ['author' => ['login' => 'josephcrowell']]);
+
+        $this->write('posts/a.md', $this->postFile('A'));
+        $this->commit('Add', 'Joseph Crowell', 'joseph.w.crowell@gmail.com');
+        $sha = trim($this->git(['rev-parse', 'HEAD']));
+        $this->sync();
+
+        $post = Post::firstOrFail();
+        $this->assertSame('josephcrowell', $post->metadata['author_github']);
+        $this->assertSame('josephcrowell', Source::firstOrFail()->author_github);
+        $this->assertSame(['https://api.github.com/repos/Sonic-DE/sonic-blogs/commits/' . $sha], $requests->getArrayCopy());
+
+        // Stored on the row: later syncs don't ask GitHub again.
+        $requests = $this->fakeGitHub(500, []);
+        $this->sync(true);
+        $this->assertSame('josephcrowell', Post::firstOrFail()->metadata['author_github']);
+        $this->assertCount(0, $requests);
+    }
+
+    public function testGithubLoginStaysEmptyWhenGitHubDoesNotKnowTheEmailOrFails()
+    {
+        Config::set('josephcrowell.blogsmd::repository', 'https://github.com/Sonic-DE/sonic-blogs');
+        $this->cloneFrom = $this->repo;
+        $this->fakeGitHub(200, ['author' => null]);
+
+        $this->write('posts/a.md', $this->postFile('A'));
+        $this->commit('Add', 'Someone', 'someone@example.org');
+        $this->sync();
+        $this->assertNull(Post::firstOrFail()->metadata['author_github']);
+
+        $this->fakeGitHub(500, []);
+        $result = $this->sync(true);
+        $this->assertEmpty($result->failed);
+        $this->assertNull(Post::firstOrFail()->metadata['author_github']);
+    }
+
+    public function testNoGitHubLookupForOtherHosts()
+    {
+        $requests = $this->fakeGitHub(200, ['author' => ['login' => 'nobody']]);
+
+        $this->write('posts/a.md', $this->postFile('A'));
+        $this->commit('Add', 'Someone', 'someone@example.org');
+        $this->sync();
+
+        $this->assertNull(Post::firstOrFail()->metadata['author_github']);
+        $this->assertCount(0, $requests);
+    }
+
+    /**
+     * Replaces GitHub's API with a canned response; returns the list of requested URLs.
+     */
+    protected function fakeGitHub(int $status, array $body): \ArrayObject
+    {
+        $requests = new \ArrayObject;
+
+        // Re-binding an already resolved class makes the container resolve it once without parameters.
+        $this->app->bind(GitHubUsers::class, function ($app, $params) use ($status, $body, $requests) {
+            $repository = $params['repository'] ?? '';
+            $token = $params['token'] ?? null;
+
+            return new class ($repository, $token, [$status, json_encode($body)], $requests) extends GitHubUsers {
+                public function __construct(string $repository, ?string $token, protected array $response, protected \ArrayObject $requests)
+                {
+                    parent::__construct($repository, $token);
+                }
+
+                protected function request(string $url): array
+                {
+                    $this->requests[] = $url;
+                    return $this->response;
+                }
+            };
+        });
+
+        return $requests;
     }
 
     public function testSimilarNewPostIsCreditedToItsOwnAuthor()

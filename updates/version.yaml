@@ -5,3 +5,6 @@
 "1.0.1":
     - "Remove Winter.Blog's sample post and category"
     - remove_blog_sample_content.php
+"1.0.2":
+    - "Store each post author's GitHub login, found through GitHub's API, for the author's profile image"
+    - add_author_github_to_sources_table.php
